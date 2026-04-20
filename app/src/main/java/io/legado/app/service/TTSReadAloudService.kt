@@ -112,7 +112,7 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
                 if (!isAddedText) {
                     val file = io.legado.app.help.book.AudioCacheHelp.getAudioFile(
                         io.legado.app.model.ReadBook.book!!, 
-                        io.legado.app.model.ReadBook.chapterIndex, 
+                        io.legado.app.model.ReadBook.durChapterIndex, 
                         i
                     )
                     if (file.exists()) {
@@ -133,7 +133,7 @@ class TTSReadAloudService : BaseReadAloudService(), TextToSpeech.OnInitListener 
                 } else {
                     val file = io.legado.app.help.book.AudioCacheHelp.getAudioFile(
                         io.legado.app.model.ReadBook.book!!, 
-                        io.legado.app.model.ReadBook.chapterIndex, 
+                        io.legado.app.model.ReadBook.durChapterIndex, 
                         i
                     )
                     if (file.exists()) {

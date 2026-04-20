@@ -177,7 +177,7 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
                     synthesizeBook(book)
                     cacheMsg[book.bookUrl] = "生成成功"
                 } catch (e: Throwable) {
-                    ensureActive()
+                    coroutineContext.ensureActive()
                     cacheMsg[bookUrl] = e.localizedMessage ?: "ERROR"
                     AppLog.put("生成报错<${book?.name ?: bookUrl}>", e)
                 } finally {
@@ -194,7 +194,7 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
         val total = chapterList.size
 
         chapterList.forEachIndexed { chapterIndex, chapter ->
-            ensureActive()
+            coroutineContext.ensureActive()
             
             // Skip already fully cached chapter
             // Normally we would just check if at least paragraph 0 exists to skip, or read chapter to find out how many paragraphs
@@ -208,7 +208,7 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
             val paragraphs = content.split("\n").filter { it.isNotEmpty() }
             
             for (paragraphIndex in paragraphs.indices) {
-                ensureActive()
+                coroutineContext.ensureActive()
                 var text = paragraphs[paragraphIndex]
                 if (text.matches(io.legado.app.constant.AppPattern.notReadAloudRegex)) continue
                 
