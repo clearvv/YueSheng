@@ -13,29 +13,37 @@ import kotlinx.coroutines.ensureActive
 import kotlin.collections.set
 
 
+import io.legado.app.help.book.AudioCacheHelp
+
 class CacheViewModel(application: Application) : BaseViewModel(application) {
     val upAdapterLiveData = MutableLiveData<String>()
 
     private var loadChapterCoroutine: Coroutine<Unit>? = null
     val cacheChapters = hashMapOf<String, HashSet<String>>()
+    val audioCacheChapters = hashMapOf<String, HashSet<String>>()
 
     fun loadCacheFiles(books: List<Book>) {
         loadChapterCoroutine?.cancel()
         loadChapterCoroutine = execute {
             books.forEach { book ->
-                if (!book.isLocal && !cacheChapters.contains(book.bookUrl)) {
-                    val chapterCaches = hashSetOf<String>()
-                    val cacheNames = BookHelp.getChapterFiles(book)
-                    if (cacheNames.isNotEmpty()) {
-                        appDb.bookChapterDao.getChapterList(book.bookUrl).also {
-                            book.totalChapterNum = it.size
-                        }.forEach { chapter ->
-                            if (cacheNames.contains(chapter.getFileName()) || chapter.isVolume) {
-                                chapterCaches.add(chapter.url)
+                if (!book.isLocal) {
+                    if (!cacheChapters.contains(book.bookUrl)) {
+                        val chapterCaches = hashSetOf<String>()
+                        val cacheNames = BookHelp.getChapterFiles(book)
+                        if (cacheNames.isNotEmpty()) {
+                            appDb.bookChapterDao.getChapterList(book.bookUrl).also {
+                                book.totalChapterNum = it.size
+                            }.forEach { chapter ->
+                                if (cacheNames.contains(chapter.getFileName()) || chapter.isVolume) {
+                                    chapterCaches.add(chapter.url)
+                                }
                             }
                         }
+                        cacheChapters[book.bookUrl] = chapterCaches
                     }
-                    cacheChapters[book.bookUrl] = chapterCaches
+                    if (!audioCacheChapters.contains(book.bookUrl)) {
+                        audioCacheChapters[book.bookUrl] = AudioCacheHelp.getAudioCacheChapters(book)
+                    }
                     upAdapterLiveData.sendValue(book.bookUrl)
                 }
                 ensureActive()

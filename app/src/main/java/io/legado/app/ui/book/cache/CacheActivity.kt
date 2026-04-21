@@ -204,12 +204,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
             R.id.menu_export_all -> exportAll()
             R.id.menu_generate_audio_cache -> {
                 if (adapter.getItems().isNotEmpty()) {
-                    adapter.getItems().forEach { book ->
-                        startService<io.legado.app.service.AudioCacheService> {
-                            action = IntentAction.start
-                            putExtra("bookUrl", book.bookUrl)
-                        }
-                    }
+                    showAudioCacheRangeDialog()
                 } else {
                     toastOnUi(R.string.no_book)
                 }
@@ -581,6 +576,64 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     override val cacheChapters: HashMap<String, HashSet<String>>
         get() = viewModel.cacheChapters
+
+    override val audioCacheChapters: HashMap<String, HashSet<String>>
+        get() = viewModel.audioCacheChapters
+
+    @SuppressLint("InflateParams")
+    private fun showAudioCacheRangeDialog() {
+        val alertBinding = DialogSelectSectionExportBinding.inflate(layoutInflater)
+        alertBinding.apply {
+            tvAllExport.text = "全部生成"
+            tvSelectExport.text = "自定义范围"
+            lyEtEpubFilename.visibility = View.GONE
+            etEpubSize.visibility = View.GONE
+            
+            cbSelectExport.onCheckedChangeListener = { _, isChecked ->
+                if (isChecked) {
+                    etInputScope.isEnabled = true
+                    cbAllExport.isChecked = false
+                }
+            }
+            cbAllExport.onCheckedChangeListener = { _, isChecked ->
+                if (isChecked) {
+                    etInputScope.isEnabled = false
+                    cbSelectExport.isChecked = false
+                }
+            }
+            cbSelectExport.callOnClick()
+        }
+
+        alert(titleResource = R.string.select_section_export) {
+            customView { alertBinding.root }
+            positiveButton(R.string.ok) {
+                if (alertBinding.cbAllExport.isChecked) {
+                    adapter.getItems().forEach { book ->
+                        startService<io.legado.app.service.AudioCacheService> {
+                            action = IntentAction.start
+                            putExtra("bookUrl", book.bookUrl)
+                            putExtra("start", 0)
+                            putExtra("end", Int.MAX_VALUE)
+                        }
+                    }
+                } else {
+                    val scopeStr = alertBinding.etInputScope.text.toString()
+                    val range = scopeStr.split("-")
+                    val start = range.getOrNull(0)?.toIntOrNull()?.minus(1) ?: 0
+                    val end = range.getOrNull(1)?.toIntOrNull()?.minus(1) ?: Int.MAX_VALUE
+                    adapter.getItems().forEach { book ->
+                        startService<io.legado.app.service.AudioCacheService> {
+                            action = IntentAction.start
+                            putExtra("bookUrl", book.bookUrl)
+                            putExtra("start", start)
+                            putExtra("end", end)
+                        }
+                    }
+                }
+            }
+            cancelButton()
+        }
+    }
 
     override fun exportProgress(bookUrl: String): Int? {
         return ExportBookService.exportProgress[bookUrl]

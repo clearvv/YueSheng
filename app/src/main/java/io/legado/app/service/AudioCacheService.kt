@@ -56,15 +56,19 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
     private var ttsInitFinish = false
 
     data class BundleConfig(
-        val epubScope: String? = null
+        val start: Int = 0,
+        val end: Int = Int.MAX_VALUE
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             IntentAction.start -> kotlin.runCatching {
                 val bookUrl = intent.getStringExtra("bookUrl")!!
+                val start = intent.getIntExtra("start", 0)
+                val end = intent.getIntExtra("end", Int.MAX_VALUE)
+                
                 if (!cacheProgress.contains(bookUrl)) {
-                    waitCacheBooks[bookUrl] = BundleConfig()
+                    waitCacheBooks[bookUrl] = BundleConfig(start, end)
                     cacheMsg[bookUrl] = "等待生成音频"
                     postEvent(EventBus.EXPORT_BOOK, bookUrl) // Reuse the export update for UI refresh
                     startCacheJob()
@@ -161,12 +165,15 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
             }
 
             while (isActive) {
-                val (bookUrl, _) = waitCacheBooks.entries.firstOrNull() ?: let {
+                val head = waitCacheBooks.entries.firstOrNull() ?: let {
                     notificationContentText = "生成完成"
                     upNotification(true)
                     stopSelf()
                     return@launch
                 }
+                val bookUrl = head.key
+                val config = head.value
+                
                 cacheProgress[bookUrl] = 0
                 waitCacheBooks.remove(bookUrl)
                 val book = appDb.bookDao.getBook(bookUrl)
@@ -175,7 +182,7 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
                     book ?: throw NoStackTraceException("获取${bookUrl}书籍出错")
                     notificationContentText = "正在生成音频 ${book.name} (还剩 ${waitCacheBooks.size} 本)"
                     upNotification()
-                    synthesizeBook(book)
+                    synthesizeBook(book, config.start, config.end)
                     cacheMsg[book.bookUrl] = "生成成功"
                 } catch (e: Throwable) {
                     coroutineContext.ensureActive()
@@ -189,13 +196,23 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
         }
     }
 
-    private suspend fun synthesizeBook(book: Book) {
-        val chapterList = appDb.bookChapterDao.getChapterList(book.bookUrl)
+    private suspend fun synthesizeBook(book: Book, start: Int, end: Int) {
+        val allChapters = appDb.bookChapterDao.getChapterList(book.bookUrl)
+        val actualStart = start.coerceAtLeast(0)
+        val actualEnd = end.coerceAtMost(allChapters.size - 1)
+        
+        if (actualStart > actualEnd) {
+             return
+        }
+
+        val chapterList = allChapters.subList(actualStart, actualEnd + 1)
         var count = 0
         val total = chapterList.size
 
-        chapterList.forEachIndexed { chapterIndex, chapter ->
+        chapterList.forEachIndexed { index, chapter ->
             coroutineContext.ensureActive()
+            
+            val chapterIndex = actualStart + index
             
             // Skip already fully cached chapter
             // Normally we would just check if at least paragraph 0 exists to skip, or read chapter to find out how many paragraphs

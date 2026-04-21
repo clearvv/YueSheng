@@ -39,4 +39,17 @@ object AudioCacheHelp {
         val path = FileUtils.getPath(downloadDir, cacheAudioFolderName, book.getFolderName())
         FileUtils.delete(path)
     }
+
+    fun getAudioCacheChapters(book: Book): HashSet<String> {
+        val chapters = hashSetOf<String>()
+        val dir = downloadDir.getFile(cacheAudioFolderName, book.getFolderName())
+        if (dir.exists() && dir.isDirectory) {
+            dir.list()?.forEach {
+                if (it.matches(Regex("\\d+"))) {
+                    chapters.add(it)
+                }
+            }
+        }
+        return chapters
+    }
 }

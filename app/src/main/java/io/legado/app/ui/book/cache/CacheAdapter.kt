@@ -46,32 +46,23 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
             if (payloads.isEmpty()) {
                 tvName.text = item.name
                 tvAuthor.text = context.getString(R.string.author_show, item.getRealAuthor())
-                if (item.isLocal) {
-                    tvDownload.setText(R.string.local_book)
-                } else {
-                    val cs = callBack.cacheChapters[item.bookUrl]
-                    if (cs == null) {
-                        tvDownload.setText(R.string.loading)
-                    } else {
-                        tvDownload.text =
-                            context.getString(
-                                R.string.download_count,
-                                cs.size,
-                                item.totalChapterNum
-                            )
-                    }
-                }
+                updateDownloadText(this, item)
             } else {
-                if (item.isLocal) {
-                    tvDownload.setText(R.string.local_book)
-                } else {
-                    val cacheSize = callBack.cacheChapters[item.bookUrl]?.size ?: 0
-                    tvDownload.text =
-                        context.getString(R.string.download_count, cacheSize, item.totalChapterNum)
-                }
+                updateDownloadText(this, item)
             }
             upDownloadIv(ivDownload, item)
             upExportInfo(tvMsg, progressExport, item)
+        }
+    }
+
+    private fun updateDownloadText(binding: ItemDownloadBinding, item: Book) {
+        if (item.isLocal) {
+            binding.tvDownload.setText(R.string.local_book)
+        } else {
+            val textCacheSize = callBack.cacheChapters[item.bookUrl]?.size ?: 0
+            val audioCacheSize = callBack.audioCacheChapters[item.bookUrl]?.size ?: 0
+            binding.tvDownload.text =
+                String.format("文字: %d/%d | 音频: %d/%d", textCacheSize, item.totalChapterNum, audioCacheSize, item.totalChapterNum)
         }
     }
 
@@ -134,6 +125,7 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
 
     interface CallBack {
         val cacheChapters: HashMap<String, HashSet<String>>
+        val audioCacheChapters: HashMap<String, HashSet<String>>
         fun export(position: Int)
         fun exportProgress(bookUrl: String): Int?
         fun exportMsg(bookUrl: String): String?
