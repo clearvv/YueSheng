@@ -6,6 +6,7 @@ import io.legado.app.utils.FileUtils
 import io.legado.app.utils.createFileIfNotExist
 import io.legado.app.utils.exists
 import io.legado.app.utils.externalFiles
+import io.legado.app.utils.getFile
 import splitties.init.appCtx
 import java.io.File
 
@@ -18,8 +19,7 @@ object AudioCacheHelp {
     }
 
     fun getAudioFile(book: Book, chapterIndex: Int, paragraphIndex: Int): File {
-        return FileUtils.getFile(
-            downloadDir,
+        return downloadDir.getFile(
             cacheAudioFolderName,
             book.getFolderName(),
             chapterIndex.toString(),
