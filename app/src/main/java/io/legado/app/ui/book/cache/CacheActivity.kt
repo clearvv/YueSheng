@@ -59,10 +59,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import splitties.activities.startActivity
+import io.legado.app.utils.startActivity
+import splitties.init.appCtx
 import kotlin.math.max
 
 /**
@@ -125,8 +123,6 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.book_cache, menu)
-        menu.add(Menu.NONE, R.id.menu_select_all, Menu.NONE, "全选/反选")
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         menu.iconItemOnLongClick(R.id.menu_download) {
             PopupMenu(this, it).apply {
                 inflate(R.menu.book_cache_download)

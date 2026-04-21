@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.data.appDb
 import io.legado.app.data.entities.Book
 import io.legado.app.databinding.ActivityAudioCacheDetailBinding
 import io.legado.app.lib.dialogs.alert
+import io.legado.app.ui.widget.TitleBar
 import io.legado.app.utils.applyNavigationBarPadding
 import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.Dispatchers.IO
@@ -36,9 +37,9 @@ class AudioCacheDetailActivity : VMBaseActivity<ActivityAudioCacheDetailBinding,
             } ?: finish()
         }
 
-        binding.recycler_view.layoutManager = LinearLayoutManager(this)
-        binding.recycler_view.adapter = adapter
-        binding.recycler_view.applyNavigationBarPadding()
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.applyNavigationBarPadding()
 
         viewModel.audioFilesLiveData.observe(this) {
             adapter.setItems(it)
@@ -61,6 +62,7 @@ class AudioCacheDetailActivity : VMBaseActivity<ActivityAudioCacheDetailBinding,
                 val selected = adapter.getItems().filter { it.isSelected }
                 if (selected.isNotEmpty()) {
                     alert("确认删除", "确定删除选中的 ${selected.size} 个音频段落吗？") {
+                        val activity = this@AudioCacheDetailActivity
                         yesButton {
                             book?.let { viewModel.deleteFiles(selected, it) }
                         }

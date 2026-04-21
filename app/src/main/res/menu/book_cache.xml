@@ -11,6 +11,11 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/menu_select_all"
+        android:title="全选/反选"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_book_group"
         android:icon="@drawable/ic_groups"
         android:title="@string/group"
