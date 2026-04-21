@@ -11,7 +11,7 @@
     <string name="menu_restore">Restore</string>
     <string name="menu_import_old">Import Legado data</string>
     <string name="webdav_cache_backup">Offline cache book backup</string>
-    <string name="webdav_cache_backup_s">Export to local and back up to the exports directory under the legado folder</string>
+    <string name="webdav_cache_backup_s">Export to local and back up to the exports directory under the yuesheng folder</string>
     <string name="backup_path">Backup to</string>
     <string name="select_backup_path">Please select a backup path.</string>
     <string name="menu_import_old_version">Import legacy data</string>
@@ -101,7 +101,7 @@
         \u3000\u3000 This is an open source reading software newly developed by Kotlin, welcome to join us.
     </string>
     <string name="app_share_description">
-        Legado (YueDu 3.0) download link：\n https://github.com/gedoor/legado/releases
+        Legaudio (Based on Legado) download link：\n https://github.com/gedoor/legado/releases
     </string>
     <string name="version_name">Version %s</string>
     <string name="pt_background_verification">Background-verification</string>
@@ -120,7 +120,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="backup_confirmation">Backup confirmation</string>
-    <string name="backup_message">The new backup files will replace the original.\n Backup folder: YueDu</string>
+    <string name="backup_message">The new backup files will replace the original.\n Backup folder: YueSheng</string>
     <string name="restore_confirmation">Restore confirmation</string>
     <string name="restore_message">Restoring the bookshelf data will overwrite the current Bookshelf.</string>
     <string name="backup_success">Backup succeed</string>

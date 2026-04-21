@@ -14,7 +14,7 @@ import splitties.init.appCtx
 @SuppressLint("SimpleDateFormat")
 object AppConst {
 
-    const val APP_TAG = "Legado"
+    const val APP_TAG = "YueSheng"
 
     const val channelIdDownload = "channel_download"
     const val channelIdReadAloud = "channel_read_aloud"

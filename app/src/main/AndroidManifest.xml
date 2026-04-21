@@ -346,8 +346,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="legado" />
-                <data android:scheme="yuedu" />
+                <data android:scheme="yuesheng" />
+                <data android:scheme="yuesheng" />
             </intent-filter>
         </activity>
         <!-- 验证码输入 -->
@@ -471,7 +471,7 @@
             android:exported="true"
             android:foregroundServiceType="dataSync"
             android:icon="@drawable/ic_web_service_noti"
-            android:label="legado Web Service"
+            android:label="阅声 Web Service"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="24">
             <intent-filter>
