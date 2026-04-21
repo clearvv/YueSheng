@@ -145,7 +145,7 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
         msgView.gone()
         val progress = callBack.audioCacheProgress(book.bookUrl) ?: callBack.exportProgress(book.bookUrl)
         if (progress != null) {
-            progressView.max = book.totalChapterNum ?: 100
+            progressView.max = book.totalChapterNum
             if (callBack.audioCacheProgress(book.bookUrl) != null) progressView.max = 100
             progressView.progress = progress
             progressView.visible()
