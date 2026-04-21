@@ -62,7 +62,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import splitties.init.appCtx
+import splitties.activities.startActivity
 import kotlin.math.max
 
 /**
@@ -125,6 +125,8 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
     override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.book_cache, menu)
+        menu.add(Menu.NONE, R.id.menu_select_all, Menu.NONE, "全选/反选")
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         menu.iconItemOnLongClick(R.id.menu_download) {
             PopupMenu(this, it).apply {
                 inflate(R.menu.book_cache_download)
@@ -170,10 +172,14 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
      */
     override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_select_all -> {
+                adapter.selectAll()
+            }
             R.id.menu_download,
             R.id.menu_download_after -> {
                 if (!CacheBook.isRun) sureCacheBook {
-                    adapter.getItems().forEach { book ->
+                    val targetBooks = if (adapter.selectedBooks.isNotEmpty()) adapter.selectedBooks else adapter.getItems()
+                    targetBooks.forEach { book ->
                         CacheBook.start(
                             this@CacheActivity,
                             book,
@@ -188,7 +194,8 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
             R.id.menu_download_all -> {
                 if (!CacheBook.isRun) sureCacheBook {
-                    adapter.getItems().forEach { book ->
+                    val targetBooks = if (adapter.selectedBooks.isNotEmpty()) adapter.selectedBooks else adapter.getItems()
+                    targetBooks.forEach { book ->
                         CacheBook.start(
                             this@CacheActivity,
                             book,
@@ -203,8 +210,9 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
 
             R.id.menu_export_all -> exportAll()
             R.id.menu_generate_audio_cache -> {
-                if (adapter.getItems().isNotEmpty()) {
-                    showAudioCacheRangeDialog()
+                val targetBooks = if (adapter.selectedBooks.isNotEmpty()) adapter.selectedBooks else adapter.getItems()
+                if (targetBooks.isNotEmpty()) {
+                    showAudioCacheRangeDialog(targetBooks.toList())
                 } else {
                     toastOnUi(R.string.no_book)
                 }
@@ -581,7 +589,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         get() = viewModel.audioCacheChapters
 
     @SuppressLint("InflateParams")
-    private fun showAudioCacheRangeDialog() {
+    private fun showAudioCacheRangeDialog(targetBooks: List<Book>) {
         val alertBinding = DialogSelectSectionExportBinding.inflate(layoutInflater)
         alertBinding.apply {
             tvAllExport.text = "全部生成"
@@ -608,7 +616,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
             customView { alertBinding.root }
             positiveButton(R.string.ok) {
                 if (alertBinding.cbAllExport.isChecked) {
-                    adapter.getItems().forEach { book ->
+                    targetBooks.forEach { book ->
                         startService<io.legado.app.service.AudioCacheService> {
                             action = IntentAction.start
                             putExtra("bookUrl", book.bookUrl)
@@ -621,7 +629,7 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
                     val range = scopeStr.split("-")
                     val start = range.getOrNull(0)?.toIntOrNull()?.minus(1) ?: 0
                     val end = range.getOrNull(1)?.toIntOrNull()?.minus(1) ?: Int.MAX_VALUE
-                    adapter.getItems().forEach { book ->
+                    targetBooks.forEach { book ->
                         startService<io.legado.app.service.AudioCacheService> {
                             action = IntentAction.start
                             putExtra("bookUrl", book.bookUrl)
@@ -643,4 +651,34 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
         return ExportBookService.exportMsg[bookUrl]
     }
 
+    override fun audioCacheProgress(bookUrl: String): Int? {
+        return io.legado.app.service.AudioCacheService.cacheProgress[bookUrl]
+    }
+
+    override fun audioCacheMsg(bookUrl: String): String? {
+        return io.legado.app.service.AudioCacheService.cacheMsg[bookUrl]
+    }
+
+    override fun showDeleteAudioCacheMenu(book: Book) {
+        PopupMenu(this, binding.recyclerView).apply {
+            menu.add("管理音频文件")
+            menu.add("删除音频缓存")
+            setOnMenuItemClickListener {
+                when (it.title) {
+                    "管理音频文件" -> {
+                        startActivity<AudioCacheDetailActivity> {
+                            putExtra("bookUrl", book.bookUrl)
+                        }
+                    }
+                    "删除音频缓存" -> {
+                        io.legado.app.help.book.AudioCacheHelp.clearAudioCache(book)
+                        viewModel.audioCacheChapters.remove(book.bookUrl)
+                        viewModel.audioCacheChapters[book.bookUrl] = io.legado.app.help.book.AudioCacheHelp.getAudioCacheChapters(book)
+                        notifyItemChanged(book.bookUrl)
+                    }
+                }
+                true
+            }
+        }.show()
+    }
 }

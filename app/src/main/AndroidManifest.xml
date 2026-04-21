@@ -281,6 +281,10 @@
         <activity
             android:name=".ui.book.cache.CacheActivity"
             android:launchMode="singleTop" />
+        <!-- 音频缓存详情 -->
+        <activity
+            android:name=".ui.book.cache.AudioCacheDetailActivity"
+            android:launchMode="singleTop" />
         <!-- WebView界面 -->
         <activity
             android:name=".ui.browser.WebViewActivity"

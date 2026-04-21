@@ -52,4 +52,21 @@ object AudioCacheHelp {
         }
         return chapters
     }
+
+    fun getAllAudioFiles(book: Book): List<File> {
+        val files = mutableListOf<File>()
+        val dir = downloadDir.getFile(cacheAudioFolderName, book.getFolderName())
+        if (dir.exists() && dir.isDirectory) {
+            dir.listFiles()?.forEach { chapterDir ->
+                if (chapterDir.isDirectory && chapterDir.name.matches(Regex("\\d+"))) {
+                    chapterDir.listFiles()?.forEach { file ->
+                        if (file.extension == "wav") {
+                            files.add(file)
+                        }
+                    }
+                }
+            }
+        }
+        return files.sortedBy { it.absolutePath }
+    }
 }

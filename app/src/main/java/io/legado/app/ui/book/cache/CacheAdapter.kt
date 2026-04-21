@@ -36,6 +36,17 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
         return ItemDownloadBinding.inflate(inflater, parent, false)
     }
 
+    val selectedBooks = hashSetOf<Book>()
+    
+    fun selectAll() {
+        if (selectedBooks.size == itemCount) {
+            selectedBooks.clear()
+        } else {
+            selectedBooks.addAll(getItems())
+        }
+        notifyItemRangeChanged(0, itemCount, true)
+    }
+
     override fun convert(
         holder: ItemViewHolder,
         binding: ItemDownloadBinding,
@@ -50,6 +61,7 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
             } else {
                 updateDownloadText(this, item)
             }
+            cbSelect.isChecked = selectedBooks.contains(item)
             upDownloadIv(ivDownload, item)
             upExportInfo(tvMsg, progressExport, item)
         }
@@ -67,6 +79,24 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
     }
 
     override fun registerListener(holder: ItemViewHolder, binding: ItemDownloadBinding) {
+        holder.itemView.setOnClickListener {
+            getItem(holder.layoutPosition)?.let { book ->
+                if (selectedBooks.contains(book)) {
+                    selectedBooks.remove(book)
+                } else {
+                    selectedBooks.add(book)
+                }
+                binding.cbSelect.isChecked = selectedBooks.contains(book)
+            }
+        }
+        
+        holder.itemView.setOnLongClickListener {
+            getItem(holder.layoutPosition)?.let { book ->
+                callBack.showDeleteAudioCacheMenu(book)
+            }
+            true
+        }
+
         binding.run {
             ivDownload.setOnClickListener {
                 getItem(holder.layoutPosition)?.let { book ->
@@ -105,7 +135,7 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
     }
 
     private fun upExportInfo(msgView: TextView, progressView: ProgressBar, book: Book) {
-        val msg = callBack.exportMsg(book.bookUrl)
+        val msg = callBack.audioCacheMsg(book.bookUrl) ?: callBack.exportMsg(book.bookUrl)
         if (msg != null) {
             msgView.text = msg
             msgView.visible()
@@ -113,9 +143,10 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
             return
         }
         msgView.gone()
-        val progress = callBack.exportProgress(book.bookUrl)
+        val progress = callBack.audioCacheProgress(book.bookUrl) ?: callBack.exportProgress(book.bookUrl)
         if (progress != null) {
-            progressView.max = book.totalChapterNum
+            progressView.max = book.totalChapterNum ?: 100
+            if (callBack.audioCacheProgress(book.bookUrl) != null) progressView.max = 100
             progressView.progress = progress
             progressView.visible()
             return
@@ -129,5 +160,8 @@ class CacheAdapter(context: Context, private val callBack: CallBack) :
         fun export(position: Int)
         fun exportProgress(bookUrl: String): Int?
         fun exportMsg(bookUrl: String): String?
+        fun audioCacheProgress(bookUrl: String): Int?
+        fun audioCacheMsg(bookUrl: String): String?
+        fun showDeleteAudioCacheMenu(book: Book)
     }
 }
