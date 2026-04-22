@@ -233,6 +233,9 @@ class AudioCacheService : BaseService(), TextToSpeech.OnInitListener {
                 val file = AudioCacheHelp.getAudioFile(book, chapterIndex, paragraphIndex)
                 if (file.exists()) continue
                 
+                cacheMsg[book.bookUrl] = "正在生成: 第${chapterIndex + 1}章 第${paragraphIndex + 1}段"
+                postEvent(EventBus.EXPORT_BOOK, book.bookUrl)
+                
                 file.parentFile?.mkdirs()
                 
                 suspendCancellableCoroutine<Boolean> { continuation ->
